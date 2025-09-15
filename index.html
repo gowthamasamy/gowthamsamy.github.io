@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Family Tree App</title>
+  <link rel="manifest" href="manifest.json">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    button { margin: 5px; padding: 8px; }
+    #tree, #list { margin-top: 20px; }
+    .person { border: 1px solid #aaa; padding: 10px; margin: 5px; display: inline-block; vertical-align: top; }
+    .photos img { width: 50px; height: 50px; object-fit: cover; margin: 2px; border-radius: 5px; }
+    .tree-node { border: 1px solid #444; padding: 5px; margin: 5px; display: inline-block; text-align: center; }
+    .children { display: flex; justify-content: center; margin-top: 10px; }
+    .photo-wrapper { position: relative; display: inline-block; }
+    .status-indicator {
+      position: absolute;
+      bottom: -3px;
+      right: -3px;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      border: 2px solid #fff;
+    }
+  </style>
+</head>
+<body>
+  <h1>👨‍👩‍👧 Family Tree App</h1>
+  
+  <label for="treeSelect">Select Tree:</label>
+  <select id="treeSelect" onchange="switchTree()"></select>
+  <button onclick="createNewTree()">+ New Tree</button>
+  
+  <br><br>
+  <button onclick="addPerson()">Add Person</button>
+  <button onclick="exportJSON()">Export JSON</button>
+  <button onclick="exportPDF()">Export PDF</button>
+  <button onclick="exportAllJSON()">Export ALL Trees (JSON)</button>
+  <button onclick="exportAllPDF()">Export ALL Trees (PDF)</button>
+  <button onclick="toggleView()">Toggle List/Tree View</button>
+
+  <div id="list"></div>
+  <div id="tree" style="display:none;"></div>
+
+  <script>
+    let trees = JSON.parse(localStorage.getItem("trees") || "{}");
+    let currentTree = Object.keys(trees)[0] || "Default Tree";
+
+    if (!trees[currentTree]) trees[currentTree] = [];
+
+    function saveTrees() {
+      localStorage.setItem("trees", JSON.stringify(trees));
+    }
+
+    function renderTreeSelector() {
+      let select = document.getElementById("treeSelect");
+      select.innerHTML = "";
+      Object.keys(trees).forEach(name => {
+        let opt = document.createElement("option");
+        opt.value = name;
+        opt.textContent = name;
+        if (name === currentTree) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function createNewTree() {
+      let name = prompt("Enter new tree name:");
+      if (!name) return;
+      if (trees[name]) { alert("Tree already exists!"); return; }
+      trees[name] = [];
+      currentTree = name;
+      saveTrees();
+      renderTreeSelector();
+      render();
+    }
+
+    function switchTree() {
+      currentTree = document.getElementById("treeSelect").value;
+      render();
+    }
+
+    function addPerson() {
+      let name = prompt("Enter name:");
+      if (!name) return;
+      let dob = prompt("Enter Date of Birth:");
+      let marriage = prompt("Enter Marriage Date (optional):");
+      let death = prompt("Enter Death Date (optional):");
+      let kulam = prompt("Enter Kulam (clan/lineage):");
+      let phone = prompt("Enter Phone Number:");
+      let notes = prompt("Enter Notes (optional):");
+
+      let person = { 
+        id: Date.now(), 
+        name, dob, marriage, death, kulam, phone, notes, 
+        photos: [], spouses: [], siblings: [], children: [] 
+      };
+
+      trees[currentTree].push(person);
+      saveTrees();
+      render();
+    }
+
+    function addPhoto(id) {
+      let url = prompt("Enter photo URL (must be an online link):");
+      if (!url) return;
+      let person = trees[currentTree].find(p => p.id === id);
+      person.photos.push(url);
+      saveTrees();
+      render();
+    }
+
+    function addSpouse(id) {
+      let spouseName = prompt("Enter spouse name:");
+      if (!spouseName) return;
+      let spouse = { id: Date.now(), name: spouseName };
+      let person = trees[currentTree].find(p => p.id === id);
+      person.spouses.push(spouse);
+      saveTrees();
+      render();
+    }
+
+    function addSibling(id) {
+      let siblingName = prompt("Enter sibling name:");
+      if (!siblingName) return;
+      let sibling = { id: Date.now(), name: siblingName };
+      let person = trees[currentTree].find(p => p.id === id);
+      person.siblings.push(sibling);
+      saveTrees();
+      render();
+    }
+
+    function addChild(id) {
+      let childName = prompt("Enter child name:");
+      if (!childName) return;
+      let child = { id: Date.now(), name: childName, children: [] };
+      let person = trees[currentTree].find(p => p.id === id);
+      person.children.push(child);
+      saveTrees();
+      render();
+    }
+
+    function deletePerson(id) {
+      trees[currentTree] = trees[currentTree].filter(p => p.id !== id);
+      saveTrees();
+      render();
+    }
+
+    function render() {
+      renderTreeSelector();
+      let people = trees[currentTree] || [];
+
+      let listDiv = document.getElementById("list");
+      listDiv.innerHTML = "";
+      people.forEach(p => {
+        let div = document.createElement("div");
+        div.className = "person";
+        div.innerHTML = `
+          <b>${p.name}</b><br>
+          Kulam: ${p.kulam || ""}<br>
+          Phone: ${p.phone || ""}<br>
+          DOB: ${p.dob || ""}<br>
+          Marriage: ${p.marriage || ""}<br>
+          Death: ${p.death || ""}<br>
+          Notes: ${p.notes || ""}<br>
+          <div class="photos">${p.photos.map(src => `<img src="${src}">`).join("")}</div>
+          <button onclick="addPhoto(${p.id})">Add Photo</button>
+          <button onclick="addSpouse(${p.id})">Add Spouse</button>
+          <button onclick="addSibling(${p.id})">Add Sibling</button>
+          <button onclick="addChild(${p.id})">Add Child</button>
+          <button onclick="deletePerson(${p.id})">Delete</button>
+        `;
+        if (p.spouses.length) {
+          div.innerHTML += `<br><b>Spouses:</b> ${p.spouses.map(s => s.name).join(", ")}`;
+        }
+        if (p.siblings.length) {
+          div.innerHTML += `<br><b>Siblings:</b> ${p.siblings.map((s, i) => `${i+1}. ${s.name}`).join(", ")}`;
+        }
+        listDiv.appendChild(div);
+      });
+
+      if (viewMode === "tree") renderTree();
+    }
+
+    function exportJSON() {
+      let people = trees[currentTree] || [];
+      let blob = new Blob([JSON.stringify(people, null, 2)], { type: "application/json" });
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = currentTree + ".json";
+      a.click();
+    }
+
+    function exportPDF() {
+      let people = trees[currentTree] || [];
+      const { jsPDF } = window.jspdf;
+      let doc = new jsPDF();
+      people.forEach((p, i) => {
+        doc.text(`${i+1}. ${p.name} | Kulam: ${p.kulam || ""} | Phone: ${p.phone || ""} | DOB: ${p.dob || ""} | Marriage: ${p.marriage || ""} | Death: ${p.death || ""}`, 10, 10 + i*10);
+      });
+      doc.save(currentTree + ".pdf");
+    }
+
+    function exportAllJSON() {
+      let blob = new Blob([JSON.stringify(trees, null, 2)], { type: "application/json" });
+      let a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "all-family-trees.json";
+      a.click();
+    }
+
+    function exportAllPDF() {
+      const { jsPDF } = window.jspdf;
+      let doc = new jsPDF();
+      let y = 10;
+      Object.keys(trees).forEach(treeName => {
+        doc.setFontSize(14);
+        doc.text(`🌳 Tree: ${treeName}`, 10, y);
+        y += 10;
+        trees[treeName].forEach((p, i) => {
+          doc.setFontSize(10);
+          doc.text(`${i+1}. ${p.name} | Kulam: ${p.kulam || ""} | Phone: ${p.phone || ""} | DOB: ${p.dob || ""} | Marriage: ${p.marriage || ""} | Death: ${p.death || ""}`, 10, y);
+          y += 8;
+          if (y > 280) { doc.addPage(); y = 10; }
+        });
+        y += 10;
+      });
+      doc.save("all-family-trees.pdf");
+    }
+
+    let viewMode = "list";
+    function toggleView() {
+      viewMode = (viewMode === "list") ? "tree" : "list";
+      document.getElementById("list").style.display = (viewMode === "list") ? "block" : "none";
+      document.getElementById("tree").style.display = (viewMode === "tree") ? "block" : "none";
+      if (viewMode === "tree") renderTree();
+    }
+
+    function renderTree() {
+      let treeDiv = document.getElementById("tree");
+      treeDiv.innerHTML = "<h2>Graphical Tree View</h2>";
+
+      let people = trees[currentTree] || [];
+      people.forEach(p => {
+        let node = createTreeNode(p);
+        treeDiv.appendChild(node);
+      });
+    }
+
+    function createTreeNode(person) {
+      let div = document.createElement("div");
+      div.className = "tree-node";
+
+      let statusColor = person.death ? "red" : "green";
+      let photoHTML = "";
+      if (person.photos.length > 0) {
+        photoHTML = `
+          <div class="photo-wrapper">
+            <img src="${person.photos[0]}" width="60" height="60" style="border-radius:50%; object-fit:cover;">
+            <span class="status-indicator" style="background:${statusColor};"></span>
+          </div><br>`;
+      }
+
+      div.innerHTML = `
+        ${photoHTML}
+        <b>${person.name}</b><br>
+        Kulam: ${person.kulam || ""}<br>
+        Phone: ${person.phone || ""}<br>
+        DOB: ${person.dob || ""}
+      `;
+
+      if (person.children && person.children.length > 0) {
+        let childrenDiv = document.createElement("div");
+        childrenDiv.className = "children";
+        person.children.forEach((child, index) => {
+          let childDiv = createTreeNode(child);
+          childDiv.innerHTML = `${index+1}. ` + childDiv.innerHTML;
+          childrenDiv.appendChild(childDiv);
+        });
+        div.appendChild(childrenDiv);
+      }
+      return div;
+    }
+
+    render();
+  </script>
+</body>
+</html>
