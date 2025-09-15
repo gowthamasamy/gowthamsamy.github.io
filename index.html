@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Family Tree App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+</head>
+<body>
+  <h1>🌳 Family Tree App</h1>
+
+  <div id="controls">
+    <button onclick="createTree()">+ New Tree</button>
+    <select id="treeSelect" onchange="switchTree()"></select>
+    <button onclick="toggleView()">Toggle List/Tree View</button>
+    <button onclick="exportAllJSON()">Export All Trees (JSON)</button>
+    <button onclick="exportAllPDF()">Export All Trees (PDF)</button>
+  </div>
+
+  <div id="listView"></div>
+  <div id="treeView" style="display:none;"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
