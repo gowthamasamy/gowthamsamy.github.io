@@ -1,0 +1,45 @@
+:root{
+  --blue:#1e4bb8;
+  --node-border:#233e8b;
+  --bg:#ffffff;
+  --muted:#666;
+}
+
+*{box-sizing:border-box;font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial;}
+body{margin:12px;background:#f7f8fb;color:#111;}
+
+header{text-align:center;margin-bottom:8px;}
+h1{margin:6px 0;font-size:20px;}
+
+#controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;margin:10px 0;}
+
+#listView{width:320px;max-height:75vh;overflow:auto;padding:10px;border-right:1px solid #eee;float:left;}
+#treeView{margin-left:340px;height:75vh;overflow:auto;padding:12px;}
+
+/* person card in list */
+.person{border:1px solid #e3e7ee;border-radius:8px;padding:8px;margin-bottom:10px;background:#fff;}
+.person .row{display:flex;gap:10px;align-items:center;}
+.person img{width:72px;height:72px;border-radius:50%;object-fit:cover;border:4px solid var(--node-border);}
+
+/* modal */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.35);align-items:center;justify-content:center;padding:16px;z-index:999;}
+.modal .modal-content{background:#fff;border-radius:10px;padding:12px;min-width:320px;max-width:760px;box-shadow:0 8px 30px rgba(0,0,0,.12);}
+.modal .modal-content.small{max-width:420px;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;}
+.close{background:transparent;border:0;font-size:18px;cursor:pointer;}
+
+label{display:block;margin-top:8px;font-size:13px;color:#222;}
+input[type="text"],input[type="date"],select,textarea{width:100%;padding:8px;border-radius:6px;border:1px solid #ccc;margin-top:4px;}
+
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:12px;}
+.modal-actions button{padding:8px 12px;border-radius:6px;border:0;background:var(--blue);color:#fff;cursor:pointer;}
+
+.small .modal-actions button{background:var(--blue);}
+
+/* D3 node styling (SVG) */
+.node circle{stroke:var(--node-border);stroke-width:3px;fill:#eaf3ff;}
+.node text{font-size:12px;}
+.link{fill:none;stroke:#233e8b;stroke-width:2px;}
+
+/* name box */
+.name-box{fill:#fff;stroke:var(--node-border);stroke-width:2px;}

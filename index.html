@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Family Tree App</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1e4bb8">
+</head>
+<body>
+  <header>
+    <h1>🌳 Family Tree App</h1>
+  </header>
+
+  <div id="controls">
+    <button onclick="createTree()">+ New Tree</button>
+    <select id="treeSelect" onchange="switchTree()"></select>
+    <button onclick="deleteCurrentTree()">🗑 Delete Tree</button>
+    <button onclick="toggleView()">🔀 Toggle List/Tree</button>
+    <button onclick="openPersonModal()">+ Add Person</button>
+    <button onclick="openRelationModalRoot()">+ Add Relation</button>
+    <button onclick="exportAllJSON()">⬇ Export JSON</button>
+    <button onclick="document.getElementById('importFile').click()">⬆ Import JSON</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none" onchange="handleImport(event)">
+    <button onclick="exportAllPDF()">📄 Export PDF</button>
+  </div>
+
+  <main>
+    <aside id="listView"></aside>
+    <section id="treeView"></section>
+  </main>
+
+  <!-- Person Modal -->
+  <div id="personModal" class="modal" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Add Person</h2>
+        <button class="close" onclick="closePersonModal()">✕</button>
+      </div>
+
+      <form id="personForm">
+        <input type="hidden" id="personEditId">
+
+        <label>Name *</label>
+        <input id="personName" required>
+
+        <label>Surname</label>
+        <input id="personSurname">
+
+        <label>Gender *</label>
+        <select id="personGender" onchange="onGenderChange()" required>
+          <option value="">--Select--</option>
+          <option>Male</option>
+          <option>Female</option>
+        </select>
+
+        <label>Place</label>
+        <input id="personPlace">
+
+        <label>Kulam (Father side)</label>
+        <input id="personKulamFather">
+
+        <div id="husbandKulamRow" style="display:none">
+          <label>Married?</label>
+          <input type="checkbox" id="personMarried" onchange="onMarriedChange()">
+          <label>Kulam (Husband side)</label>
+          <input id="personKulamHusband">
+        </div>
+
+        <label>Date of birth</label>
+        <input type="date" id="personDOB">
+
+        <label>Status</label>
+        <select id="personStatus" onchange="onStatusChange()">
+          <option>Alive</option>
+          <option>Dead</option>
+        </select>
+
+        <div id="deathRow" style="display:none">
+          <label>Date of death</label>
+          <input type="date" id="personDOD">
+        </div>
+
+        <label>Spouse (link existing)</label>
+        <select id="personSpouse">
+          <option value="">-- none --</option>
+        </select>
+
+        <label>Father</label>
+        <select id="personFather">
+          <option value="">-- none --</option>
+        </select>
+
+        <label>Mother</label>
+        <select id="personMother">
+          <option value="">-- none --</option>
+        </select>
+
+        <label>Story / Notes</label>
+        <textarea id="personStory" rows="3"></textarea>
+
+        <label>Profile Image</label>
+        <input type="file" id="personImage" accept="image/*" onchange="onImageSelected(event)">
+        <div id="imagePreviewWrap"></div>
+        <button type="button" onclick="deleteProfilePic()">Delete Profile Pic</button>
+
+        <div class="modal-actions">
+          <button type="button" onclick="savePerson()">Save</button>
+          <button type="button" onclick="closePersonModal()">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Relation Modal -->
+  <div id="relationModal" class="modal" aria-hidden="true">
+    <div class="modal-content small">
+      <div class="modal-header">
+        <h3>Add Relationship</h3>
+        <button class="close" onclick="closeRelationModal()">✕</button>
+      </div>
+      <div>
+        <label>Base Person</label>
+        <select id="relationBase"></select>
+
+        <label>Existing Person</label>
+        <select id="existingPersonSelect"></select>
+
+        <label>Relation</label>
+        <select id="relationType">
+          <option value="">--Select--</option>
+          <option value="father">Father</option>
+          <option value="mother">Mother</option>
+          <option value="son">Son</option>
+          <option value="daughter">Daughter</option>
+          <option value="spouse">Spouse</option>
+          <option value="half-sibling">Half-Sibling</option>
+        </select>
+
+        <div style="margin-top:10px;">
+          <button onclick="addRelationFromModal()">Add Relation</button>
+          <button onclick="closeRelationModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- libs -->
+  <script src="https://d3js.org/d3.v7.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+  <script src="app.js"></script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(()=>{/*no-op*/});
+    }
+  </script>
+</body>
+</html>
